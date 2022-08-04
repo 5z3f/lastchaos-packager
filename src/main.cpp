@@ -65,23 +65,23 @@ int main()
 	std::map<std::string, File::ContainerType> FileMap
 	{
 		{ "strAction",			File::ContainerType::ACTION_STRING			},
-		{ "strAffinity",		File::ContainerType::AFFINITY_STRING		},
+		{ "strAffinity",		File::ContainerType::AFFINITY_STRING			},
 		{ "strCatalog",			File::ContainerType::CATALOG_STRING			},
 		{ "strClient",			File::ContainerType::SYSTEM_STRING			},
 		{ "strCombo",			File::ContainerType::COMBO_STRING			},
 		{ "strHelp",			File::ContainerType::HELP_STRING			},
-		{ "strItemCollection",	File::ContainerType::ITEMCOLLECTION_STRING	},
+		{ "strItemCollection",		File::ContainerType::ITEMCOLLECTION_STRING		},
 		{ "strItem",			File::ContainerType::ITEM_STRING			},
-		{ "strLacarette",		File::ContainerType::LACARETTE_STRING		},
+		{ "strLacarette",		File::ContainerType::LACARETTE_STRING			},
 		{ "strNPCHelp",			File::ContainerType::NPCHELP_STRING			},
 		{ "strNpcName",			File::ContainerType::NPC_STRING				},
 		{ "strNPCShop",			File::ContainerType::NPCSHOP_STRING			},
 		{ "strOption",			File::ContainerType::OPTION_STRING			},
 		{ "strQuest",			File::ContainerType::QUEST_STRING			},
-		{ "strRareOption",		File::ContainerType::RAREOPTION_STRING		},
+		{ "strRareOption",		File::ContainerType::RAREOPTION_STRING			},
 		{ "strSetItem",			File::ContainerType::SETITEM_STRING			},
 		{ "strSkill",			File::ContainerType::SKILL_STRING			},
-		{ "strSSkill",			File::ContainerType::SPECIALSKILL_STRING	}
+		{ "strSSkill",			File::ContainerType::SPECIALSKILL_STRING		}
 	};
 
 	File::Package pkg;
