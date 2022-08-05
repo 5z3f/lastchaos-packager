@@ -132,11 +132,13 @@ bool pack(File::Package pkg, std::string root)
 		std::string filePath = entry.path().string();
 		std::string fileName = entry.path().filename().string();
 
-		std::string replaceData = pkg.type == File::PackageType::DAT_STRING ?
-			(pkg.container.data_type == File::ContainerDataType::BINARY ? "_us.lod" : "_us.lod.json") :
-			(pkg.container.data_type == File::ContainerDataType::BINARY ? ".lod" : ".lod.json");
+		bool isBinaryContainer = (pkg.container.data_type == File::ContainerDataType::BINARY);
 
-		if (pkg.container.data_type == File::ContainerDataType::BINARY && fileName.find(".json") != std::string::npos)
+		std::string replaceData = pkg.type == File::PackageType::DAT_STRING ?
+			(isBinaryContainer ? "_us.lod" : "_us.lod.json") :
+			(isBinaryContainer ? ".lod" : ".lod.json");
+
+		if (isBinaryContainer && fileName.find(".json") != std::string::npos)
 			continue;
 
 		if (fileName.find(replaceData) == std::string::npos)
