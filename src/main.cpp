@@ -35,6 +35,7 @@ auto decompress(const char* input, const size_t size)
 
 	return block;
 }
+
 std::string hash(std::string text)
 {
 	uint32_t seed = 0;
@@ -58,116 +59,132 @@ static std::vector<char> ReadAllBytes(std::string fp)
 	return result;
 }
 
-int main()
+std::vector<char> buf;
+
+auto containerType = File::ContainerType::UNKNOWN_CONTAINER;
+
+std::string chunkName;
+std::string chunkNamePlain;
+size_t chunkNameLength;
+
+std::string data;
+std::string data_compressed;
+size_t data_compressed_size;
+
+size_t container_size = 0;
+size_t container_size_compressed = 0;
+
+void build_container(std::fstream& ofs, File::Package pkg, std::filesystem::path fsp)
 {
-	std::string localizationRoot = "C:/Users/Administrator/Desktop/ClientNov/Local/us";
+	std::string filePath = fsp.string();
+	std::string fileName = fsp.filename().string();
 
-	std::map<std::string, File::ContainerType> FileMap
-	{
-		{ "strAction",			File::ContainerType::ACTION_STRING			},
-		{ "strAffinity",		File::ContainerType::AFFINITY_STRING			},
-		{ "strCatalog",			File::ContainerType::CATALOG_STRING			},
-		{ "strClient",			File::ContainerType::SYSTEM_STRING			},
-		{ "strCombo",			File::ContainerType::COMBO_STRING			},
-		{ "strHelp",			File::ContainerType::HELP_STRING			},
-		{ "strItemCollection",		File::ContainerType::ITEMCOLLECTION_STRING		},
-		{ "strItem",			File::ContainerType::ITEM_STRING			},
-		{ "strLacarette",		File::ContainerType::LACARETTE_STRING			},
-		{ "strNPCHelp",			File::ContainerType::NPCHELP_STRING			},
-		{ "strNpcName",			File::ContainerType::NPC_STRING				},
-		{ "strNPCShop",			File::ContainerType::NPCSHOP_STRING			},
-		{ "strOption",			File::ContainerType::OPTION_STRING			},
-		{ "strQuest",			File::ContainerType::QUEST_STRING			},
-		{ "strRareOption",		File::ContainerType::RAREOPTION_STRING			},
-		{ "strSetItem",			File::ContainerType::SETITEM_STRING			},
-		{ "strSkill",			File::ContainerType::SKILL_STRING			},
-		{ "strSSkill",			File::ContainerType::SPECIALSKILL_STRING		}
-	};
+	chunkNamePlain = File::TypeToChunkName(stringify(File::ContainerType), pkg.container.type);
+	chunkName = hash(chunkNamePlain);
+	chunkNameLength = chunkName.length();
 
-	File::Package pkg;
+	buf = ReadAllBytes(filePath);
+	data = std::string(begin(buf), end(buf));
 
-	pkg.type = File::PackageType::DAT_STRING;
-	pkg.container_data_type = File::ContainerDataType::JSON;
-	pkg.ver = 1;
-	pkg.compress = true;
+	if (pkg.container.data_type == File::ContainerDataType::JSON)
+		data = json::parse(data).dump();
 
+	pkg.container.data = data.c_str();
+	pkg.container.size = data.size();
+
+	container_size += pkg.container.size;
+
+	data_compressed = compress(pkg.container.data, pkg.container.size, PACKAGE_COMPRESSION_LEVEL);
+	data_compressed_size = data_compressed.size();
+
+	container_size_compressed += data_compressed_size;
+
+	ofs.write(reinterpret_cast<const char*>(&chunkNameLength), sizeof(chunkNameLength));
+	ofs.write(chunkName.c_str(), chunkName.length());
+	ofs.write(reinterpret_cast<const char*>(&pkg.container.data_type), sizeof(pkg.container.data_type));
+	ofs.write(reinterpret_cast<const char*>(&data_compressed_size), sizeof(data_compressed_size));
+	ofs.write(data_compressed.c_str(), data_compressed_size);
+
+	std::cout << std::format("packing `{}`\t\t({} >> {}) [{} bytes >> {} bytes]", fileName, chunkNamePlain, chunkName, pkg.container.size, data_compressed_size) << std::endl;
+}
+
+void build_header(std::fstream& ofs, File::Package pkg, std::string chunkName)
+{
+	ofs.write(chunkName.c_str(), chunkName.length());
+	ofs.write(reinterpret_cast<const char*>(&pkg.ver), sizeof(pkg.ver));
+	ofs.write(reinterpret_cast<const char*>(&pkg.compress), sizeof(pkg.compress));
+}
+
+bool pack(File::Package pkg, std::string root)
+{
 	std::string pkgTypeText = File::TypeToChunkName(stringify(File::PackageType), pkg.type);
 	auto ofs = std::fstream(pkgTypeText + ".pkg", std::ios::out | std::ios::binary);
 
 	if (!ofs.is_open())
 		return false;
 
-	ofs.write(pkgTypeText.c_str(), pkgTypeText.length());
-	ofs.write(reinterpret_cast<const char*>(&pkg.ver), sizeof(pkg.ver));
-	ofs.write(reinterpret_cast<const char*>(&pkg.compress), sizeof(pkg.compress));
+	build_header(ofs, pkg, pkgTypeText);
 
-	std::string data;
-	std::vector<char> buf;
+	auto workDir = (pkg.type == File::PackageType::DAT_STRING) ? "/local/us/string" : "/data";
 
-	int all = 0;
-	int all_compressed = 0;
-
-	for (const auto& entry : std::filesystem::directory_iterator(localizationRoot + "/string"))
+	for (const auto& entry : std::filesystem::directory_iterator(root + workDir))
 	{
 		std::string filePath = entry.path().string();
 		std::string fileName = entry.path().filename().string();
-		std::string replaceData = pkg.container_data_type == File::ContainerDataType::BINARY ? "_us.lod" : "_us.lod.json";
 
-		if (pkg.container_data_type == File::ContainerDataType::BINARY && fileName.find(".json") != std::string::npos)
+		std::string replaceData = pkg.type == File::PackageType::DAT_STRING ?
+			(pkg.container.data_type == File::ContainerDataType::BINARY ? "_us.lod" : "_us.lod.json") :
+			(pkg.container.data_type == File::ContainerDataType::BINARY ? ".lod" : ".lod.json");
+
+		if (pkg.container.data_type == File::ContainerDataType::BINARY && fileName.find(".json") != std::string::npos)
 			continue;
 
 		if (fileName.find(replaceData) == std::string::npos)
 			continue;
-		
+
 		fileName.replace(fileName.find(replaceData), std::string(replaceData).length(), "");
 
-		File::ContainerType containerType = File::ContainerType::UNKNOWN_CONTAINER;
+		containerType = File::ContainerType::UNKNOWN_CONTAINER;
 
-		for (const auto& [key, value] : FileMap)
+		for (const auto& [key, value] : File::FileMap)
 			if (key == fileName)
 				containerType = value;
 
-		pkg.container_type = containerType;
+		pkg.container.type = containerType;
 
 		if (containerType == File::ContainerType::UNKNOWN_CONTAINER)
 		{
-			std::cout << "Couldn't pack " << fileName << " file" << std::endl;
+			std::cout << "Couldn't build " << fileName << " file container" << std::endl;
 			continue;
 		}
 
-		buf = ReadAllBytes(filePath);
-		data = std::string(begin(buf), end(buf));
-
-		if(pkg.container_data_type == File::ContainerDataType::JSON)
-			data = json::parse(data).dump();
-
-		pkg.container_data = data.c_str();
-		pkg.container_size = data.size();
-
-		all += pkg.container_size;
-
-		std::string chunkNamePlain = File::TypeToChunkName(stringify(File::ContainerType), pkg.container_type);
-		std::string chunkName = hash(chunkNamePlain);
-
-		auto data_compressed = compress(pkg.container_data, pkg.container_size, PACKAGE_COMPRESSION_LEVEL);
-		auto data_compressed_size = data_compressed.size();
-
-		all_compressed += data_compressed_size;
-
-		std::cout << std::format("Packing `{}`\t\t({} >> {}) [before: {} bytes, after: {} bytes]", fileName, chunkNamePlain, chunkName, pkg.container_size, data_compressed_size) << std::endl;
-
-		ofs.write(chunkName.c_str(), chunkName.length());
-		ofs.write(reinterpret_cast<const char*>(&pkg.container_data_type), sizeof(pkg.container_data_type));
-		ofs.write(reinterpret_cast<const char*>(&data_compressed_size), sizeof(data_compressed_size));
-		ofs.write(data_compressed.c_str(), data_compressed_size);
+		build_container(ofs, pkg, filePath);
 
 		//auto data_decompressed = decompress(data_compressed.c_str(), data_compressed.size());
 		//std::cout << data_decompressed << std::endl;
+		//std::ofstream(filePath + ".out", std::ios::binary).write(data_decompressed.c_str(), data_decompressed.length());
 	}
 
-	float percent = ((float)all - (float)all_compressed) / (float)all * 100;
-	std::cout << std::format("\nOverall reduced size: {}% ({} >> {})\n", round(percent), all, all_compressed);
+	float percent = ((float)container_size - (float)container_size_compressed) / (float)container_size * 100;
+	std::cout << std::format("\n[level {}] Overall reduced size: {}% ({} bytes >> {} bytes)\n", PACKAGE_COMPRESSION_LEVEL, round(percent), container_size, container_size_compressed);
 	ofs.close();
+
+	return true;
+}
+
+int main()
+{
+	File::Package pkg
+	{
+		.type = File::PackageType::DAT,
+		.ver = 1,
+		.compress = true,
+		.container = {
+			.data_type = File::ContainerDataType::BINARY
+		}
+	};
+
+	pack(pkg, "C:/Users/Administrator/Desktop/ClientNov/");
 
 	std::cout << "Press any key to exit..." << std::endl;
 	std::getchar();

@@ -1,3 +1,36 @@
 lastchaos-packager
 
 A tool for packaging client files using zstd and xxhash.
+
+	packing `actions.lod`           (pkgacd >> 65159D91) [1117 bytes >> 298 bytes]
+	packing `affinity.lod`          (pkgafd >> B90C89E5) [10260 bytes >> 3701 bytes]
+	packing `bigpet.lod`            (pkgapd >> 274FA503) [57964 bytes >> 2798 bytes]
+	packing `catalog.lod`           (pkgctd >> CBB152DA) [54159 bytes >> 9874 bytes]
+	packing `combo.lod`             (pkgcbd >> CEC1C61A) [4954 bytes >> 1652 bytes]
+	packing `event_usa.lod`         (pkgevd >> 553DF1C8) [40 bytes >> 37 bytes]
+	packing `itemAll.lod`           (pkgimd >> 1385E1DA) [5045417 bytes >> 184713 bytes]
+	packing `itemCollection.lod`    (pkgicd >> 5D9E5EE)  [35424 bytes >> 5248 bytes]
+	packing `itemFortune.lod`       (pkgifd >> 127FC832) [436 bytes >> 158 bytes]
+	packing `item_exchange.lod`     (pkgixd >> 7B28711F) [288 bytes >> 87 bytes]
+	packing `JewelCompos.lod`       (pkgjcd >> FFBBAC22) [964 bytes >> 421 bytes]
+	packing `lacarette.lod`         (pkglcd >> B57FD746) [1549 bytes >> 378 bytes]
+	packing `MakeItem_usa.lod`      (pkgmid >> B8916BFB) [40415 bytes >> 4195 bytes]
+	packing `mobAll.lod`            (pkgncd >> E7013BDA) [1457437 bytes >> 44966 bytes]
+	packing `mobhelp.lod`           (pkgmhd >> 1FB6F4FD) [2068 bytes >> 448 bytes]
+	packing `moonstone.lod`         (pkgmsd >> 3E251AC3) [476 bytes >> 221 bytes]
+	packing `notice.lod`            (pkgntd >> C21CF717) [482 bytes >> 169 bytes]
+	packing `npchelp.lod`           (pkgnhd >> BC1D4553) [2172 bytes >> 579 bytes]
+	packing `option.lod`            (pkgotd >> 22D479DD) [17180 bytes >> 1497 bytes]
+	packing `PetAI_usa.lod`         (pkgpad >> E9AE517D) [8027 bytes >> 912 bytes]
+	packing `questAll.lod`          (pkgqtd >> BDD93CEB) [302548 bytes >> 21321 bytes]
+	packing `raidobjectlist.lod`    (pkgrld >> 45650B8B) [746 bytes >> 367 bytes]
+	packing `rareoption.lod`        (pkgrod >> A532A6EF) [14476 bytes >> 1484 bytes]
+	packing `setItemALL.lod`        (pkgsid >> D5877642) [64668 bytes >> 5404 bytes]
+	packing `shopAll.lod`           (pkgspd >> 22464399) [9243 bytes >> 2749 bytes]
+	packing `skills.lod`            (pkgskd >> F823BEE3) [1334110 bytes >> 103705 bytes]
+	packing `smc.lod`               (pkgscd >> DBE01F0C) [2259136 bytes >> 180848 bytes]
+	packing `sskill.lod`            (pkgssd >> B042AF5E) [1980 bytes >> 383 bytes]
+	packing `titletool.lod`         (pkgttd >> 418E67C2) [47506 bytes >> 2633 bytes]
+	packing `ZoneFlag.lod`          (pkgznd >> CBA4FD5B) [1684 bytes >> 431 bytes]
+
+	[level 1] Overall reduced size: 95% (10776926 bytes >> 581677 bytes)
